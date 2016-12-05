@@ -1,5 +1,7 @@
 package com.leelay.freshlayout.verticalre;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
@@ -15,8 +17,9 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 支持垂直下拉刷新的Layout
@@ -26,31 +29,44 @@ import android.widget.TextView;
 public class VRefreshLayout extends ViewGroup {
 
     private static final String TAG = "VRefreshLayout";
-    private static final int DEFUTL_HEADER_HEIGHT = 56;
+
+    public final static int STATUS_INIT = 0;//原始状态
+    public final static int STATUS_DRAGGING = 1;//正在下拉
+    public final static int STATUS_RELEASE_PREPARE = 2;//松手将要刷新
+    public final static int STATUS_REFRESHING = 3;//正在刷新
+    public final static int STATUS_RELEASE_CANCEL = 4;//松手取消
+    public final static int STATUS_COMPLETE = 5;//刷新完成
+
+    private int mStatus;
+
     private View mHeaderView;
 
     private View mContentView;
 
     private int mHeaderOrginTop;
 
-    private float mMaxDragDistance = -1;
+    private int mMaxDragDistance = -1;
 
     private float DRAG_RATE = .5f;
 
     private int mHeaderCurrentTop;
     private int mHeaderLayoutIndex = -1;
-
     private boolean mIsInitMesure = true;
-
     private boolean mIsBeingDragged;
     private float mInitDownY;
     private float mInitMotionY;
-
     private boolean mIsRefreshing;
-
 
     private int mActivePointerId = -1;
     private float mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+    private Progress mProgress = new Progress();
+    private int mRefreshDistance;
+    private int mToStartDuration = 200;
+    private int mToRetainDuration = 200;
+    private int mAutoRefreshDuration = 800;
+    private int mCompleteStickDuration = 400;
+    private float ratioOfHeaderHeightToRefresh = 1.0f;
+    private float ratioOfHeaderHeightToReach = 1.6f;
 
     public VRefreshLayout(Context context) {
         this(context, null);
@@ -60,21 +76,50 @@ public class VRefreshLayout extends ViewGroup {
         super(context, attrs);
         setDefultHeaderView();
         setChildrenDrawingOrderEnabled(true);
-        mMaxDragDistance = dp2px(98);
+    }
+
+    public void setRatioOfHeaderHeightToRefresh(float ratio) {
+        ratio = Math.max(ratio, 1.0f);
+        this.ratioOfHeaderHeightToRefresh = ratio;
+        this.ratioOfHeaderHeightToReach = Math.max(ratioOfHeaderHeightToRefresh, ratioOfHeaderHeightToReach);
+    }
+
+    public void setRatioOfHeaderHeightToReach(float ratio) {
+        ratio = Math.max(Math.max(ratio, 1.0f), ratioOfHeaderHeightToRefresh);
+        this.ratioOfHeaderHeightToReach = ratio;
+    }
+    public void setToStartDuration(int toStartDuration) {
+        mToStartDuration = toStartDuration;
+    }
+
+    public void setToRetainDuration(int toRetainDuration) {
+        mToRetainDuration = toRetainDuration;
+    }
+
+    public void setAutoRefreshDuration(int autoRefreshDuration) {
+        mAutoRefreshDuration = autoRefreshDuration;
+    }
+
+    public void setCompleteStickDuration(int completeStickDuration) {
+        mCompleteStickDuration = completeStickDuration;
+    }
+
+
+    private void setMaxDragDistance(int distance) {
+        mMaxDragDistance = distance;
+        mProgress.totalY = distance;
+    }
+
+    private void setRefreshDistance(int distance) {
+        mRefreshDistance = distance;
+        mProgress.refreshY = mRefreshDistance;
     }
 
     private void setDefultHeaderView() {
-        RelativeLayout relativeLayout = new RelativeLayout(getContext());
-        relativeLayout.setBackgroundColor(Color.BLACK);
-        TextView textView = new TextView(getContext());
-        textView.setText("Header");
-        textView.setTextColor(Color.BLACK);
-        textView.setBackgroundColor(Color.WHITE);
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        relativeLayout.addView(textView, layoutParams);
-        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, dp2px(DEFUTL_HEADER_HEIGHT)));
-        setHeaderView(relativeLayout);
+        DefultHeaderView defultHeaderView = new DefultHeaderView(getContext());
+        defultHeaderView.setPadding(0, dp2px(10), 0, dp2px(10));
+        defultHeaderView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, dp2px(64)));
+        setHeaderView(defultHeaderView);
     }
 
 
@@ -94,7 +139,10 @@ public class VRefreshLayout extends ViewGroup {
         if (mHeaderView != null) {
             measureChild(mHeaderView, widthMeasureSpec, heightMeasureSpec);
             if (mIsInitMesure) {
-                mHeaderOrginTop = mHeaderCurrentTop = -mHeaderView.getMeasuredHeight();
+                int measuredHeight = mHeaderView.getMeasuredHeight();
+                mHeaderOrginTop = mHeaderCurrentTop = -measuredHeight;
+                setMaxDragDistance((int) (measuredHeight * ratioOfHeaderHeightToReach));
+                setRefreshDistance((int) (measuredHeight * ratioOfHeaderHeightToRefresh));
                 mIsInitMesure = false;
             }
         }
@@ -115,7 +163,6 @@ public class VRefreshLayout extends ViewGroup {
                     break;
                 }
             }
-
         }
     }
 
@@ -145,10 +192,7 @@ public class VRefreshLayout extends ViewGroup {
             int bottom = paddingTop + contentHeight;
             mContentView.layout(left, top + distance, right, bottom);
         }
-
         Log.e(TAG, "onLayout: ");
-
-
     }
 
 
@@ -178,6 +222,7 @@ public class VRefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
                 Log.e(TAG, "onInterceptTouchEvent: ACTION_DOWN");
                 mIsBeingDragged = false;
+                notifyStatus(STATUS_INIT);
                 mActivePointerId = ev.getPointerId(0);
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
@@ -241,6 +286,7 @@ public class VRefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
                 Log.e(TAG, "onTouchEvent: ACTION_DOWN");
                 mIsBeingDragged = false;
+                notifyStatus(STATUS_INIT);
                 mActivePointerId = ev.getPointerId(0);
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
@@ -262,6 +308,7 @@ public class VRefreshLayout extends ViewGroup {
                     if (dy > 0) {
                         actionMoving(dy);
                     }
+                    notifyStatus(STATUS_DRAGGING);
                 }
                 break;
 
@@ -297,12 +344,7 @@ public class VRefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_CANCEL:
                 Log.e(TAG, "onTouchEvent: ACTION_CANCEL");
                 return false;
-
-            default:
-
-                break;
         }
-
         return true;
 
     }
@@ -310,77 +352,86 @@ public class VRefreshLayout extends ViewGroup {
 
     private void actionUp(float dy) {
         Log.e(TAG, "actionUp: " + dy);
-
-        float mMinDistance = mMaxDragDistance;
-        if (dy < mMinDistance) {
+        if (dy < mRefreshDistance) {
             //cancel
             animOffsetToStartPos();
             mIsRefreshing = false;
+            notifyStatus(STATUS_RELEASE_CANCEL);
         } else {
             animOffsetToRetainPos();
             mIsRefreshing = true;
-            //return
+            notifyStatus(STATUS_RELEASE_PREPARE);
         }
+    }
+
+    private void moveAnimation(int star, int end, int duration, Animator.AnimatorListener animatorListener) {
+        ValueAnimator valueAnimator = ValueAnimator.ofInt(star, end);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int value = (int) animation.getAnimatedValue();
+                moveTo(value);
+            }
+        });
+        if (animatorListener != null) {
+            valueAnimator.addListener(animatorListener);
+        }
+        valueAnimator.setDuration(duration);
+        valueAnimator.start();
     }
 
     private void animOffsetToRetainPos() {
         final int from = mHeaderCurrentTop = mHeaderView.getTop();
-        int to = 0;
-        ValueAnimator valueAnimator = ValueAnimator.ofInt(from, to);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        int to = getPaddingTop() + mRefreshDistance - mHeaderView.getMeasuredHeight();
+        moveAnimation(from, to, mToRetainDuration, new AnimatorListenerAdapter() {
             @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                int value = (int) animation.getAnimatedValue();
-                int dy = value - mHeaderCurrentTop;
-                ViewCompat.offsetTopAndBottom(mHeaderView, dy);
-                ViewCompat.offsetTopAndBottom(mContentView, dy);
-                mContentView.setBottom(mContentView.getBottom() - dy);
-                mHeaderCurrentTop = mHeaderView.getTop();
-
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                notifyRefreshListeners();
+                notifyStatus(STATUS_REFRESHING);
             }
         });
-        valueAnimator.setDuration(200);
-        valueAnimator.start();
     }
 
+    private void animOffsetAutoRefresh() {
+        mHeaderCurrentTop = mHeaderView.getTop();
+        final int from = mHeaderCurrentTop;
+        int to = mMaxDragDistance + mHeaderOrginTop;
+        moveAnimation(from, to, mAutoRefreshDuration, new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                notifyStatus(STATUS_RELEASE_PREPARE);
+                animOffsetToRetainPos();
+            }
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+                notifyStatus(STATUS_DRAGGING);
+            }
+        });
+    }
 
     private void animOffsetToStartPos() {
         final int from = mHeaderCurrentTop = mHeaderView.getTop();
         int to = mHeaderOrginTop;
-        ValueAnimator valueAnimator = ValueAnimator.ofInt(from, to);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        moveAnimation(from, to, mToStartDuration, new AnimatorListenerAdapter() {
             @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                int value = (int) animation.getAnimatedValue();
-                int dy = value - mHeaderCurrentTop;
-                ViewCompat.offsetTopAndBottom(mHeaderView, dy);
-                ViewCompat.offsetTopAndBottom(mContentView, dy);
-                mContentView.setBottom(mContentView.getBottom() - dy);
-                mHeaderCurrentTop = mHeaderView.getTop();
-
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                mIsRefreshing = false;
+                notifyStatus(STATUS_INIT);
             }
         });
-        valueAnimator.setDuration(200);
-        valueAnimator.start();
     }
 
-    private void actionMoving(float dy) {
-        if (dy <= mMaxDragDistance) {
-            int targetY = (int) (mHeaderOrginTop + dy);
-            int ddy = targetY - mHeaderCurrentTop;
-            Log.e(TAG, "actionMoving: dy" + dy);
-            Log.e(TAG, "actionMoving: targetY" + targetY);
-            Log.e(TAG, "actionMoving: ddy" + ddy);
-            ViewCompat.offsetTopAndBottom(mHeaderView, ddy);
-            ViewCompat.offsetTopAndBottom(mContentView, ddy);
-            mContentView.setBottom(mContentView.getBottom() - ddy);
-            mHeaderCurrentTop = mHeaderView.getTop();
-            Log.e(TAG, "actionMoving: mHeaderCurrentTop" + mHeaderCurrentTop);
+    private void actionMoving(float y) {
+        y = Math.min(y, mMaxDragDistance);
+        if (y <= mMaxDragDistance) {
+            int targetY = (int) (mHeaderOrginTop + y);
+            moveTo(targetY);
         }
-        int bottom = mContentView.getBottom();
-        System.out.println(bottom);
-
-
     }
 
 
@@ -395,8 +446,11 @@ public class VRefreshLayout extends ViewGroup {
         }
         removeView(mHeaderView);
         mHeaderView = view;
+        mIsInitMesure = true;
         this.addView(mHeaderView);
-
+        if (view instanceof UpdateHandler) {
+            setUpdateHandler((UpdateHandler) view);
+        }
     }
 
     public void setHeaderView(@LayoutRes int redId) {
@@ -423,4 +477,98 @@ public class VRefreshLayout extends ViewGroup {
             return ViewCompat.canScrollVertically(mContentView, -1);
         }
     }
+
+    public void refreshComplete() {
+        if (mIsRefreshing) {
+            notifyStatus(STATUS_COMPLETE);
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    animOffsetToStartPos();
+                }
+            }, mCompleteStickDuration);
+        }
+    }
+
+    public void autoRefresh() {
+        if (!mIsRefreshing) {
+            mIsRefreshing = true;
+            animOffsetAutoRefresh();
+        }
+    }
+
+    private void moveTo(int y) {
+        int dy = y - mHeaderCurrentTop;
+        ViewCompat.offsetTopAndBottom(mHeaderView, dy);
+        ViewCompat.offsetTopAndBottom(mContentView, dy);
+        mHeaderCurrentTop = mHeaderView.getTop();
+        mProgress.currentY = mHeaderCurrentTop - mHeaderOrginTop;
+        notifyProgress();
+    }
+
+    private void notifyProgress() {
+        if (mUpdateHandler != null) {
+            mUpdateHandler.onProgressUpdate(this, mProgress, mStatus);
+        }
+    }
+
+    private void notifyStatus(int status) {
+        mStatus = status;
+        if (mUpdateHandler != null) {
+            mUpdateHandler.onProgressUpdate(this, mProgress, mStatus);
+        }
+    }
+
+    public interface OnRefreshListener {
+        void onRefresh();
+    }
+
+    private List<OnRefreshListener> mOnRefreshListeners;
+
+    public void addOnRefreshListener(OnRefreshListener onRefreshListener) {
+        if (mOnRefreshListeners == null) {
+            mOnRefreshListeners = new ArrayList<>();
+        }
+        mOnRefreshListeners.add(onRefreshListener);
+    }
+
+    private void notifyRefreshListeners() {
+        if (mOnRefreshListeners == null || mOnRefreshListeners.isEmpty()) {
+            return;
+        }
+        for (OnRefreshListener onRefreshListener : mOnRefreshListeners) {
+            onRefreshListener.onRefresh();
+        }
+    }
+
+    private UpdateHandler mUpdateHandler;
+
+    public void setUpdateHandler(UpdateHandler updateHandler) {
+        mUpdateHandler = updateHandler;
+    }
+
+
+    public interface UpdateHandler {
+        void onProgressUpdate(VRefreshLayout layout, Progress progress, int status);
+    }
+
+    public static class Progress {
+        private int totalY;
+        private int currentY;
+        private int refreshY;
+
+        public int getRefreshY() {
+            return refreshY;
+        }
+
+        public int getTotalY() {
+            return totalY;
+        }
+
+        public int getCurrentY() {
+            return currentY;
+        }
+    }
+
+
 }

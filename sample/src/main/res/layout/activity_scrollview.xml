@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.leelay.freshlayout.verticalre.VRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/refresh_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/dkgray"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/itemText"
+                android:background="@color/colorAccent"
+                android:text="current page is a ScrollView"
+                />
+
+            <TextView
+                style="@style/itemText"
+                android:onClick="itemClick"
+                android:text="ListView"
+                />
+
+            <TextView
+                style="@style/itemText"
+                android:onClick="itemClick"
+                android:text="TextView"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+</com.leelay.freshlayout.verticalre.VRefreshLayout>
+
