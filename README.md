@@ -60,19 +60,30 @@ java代码中，监听和控制刷新状态
 
 这样就能在下拉时触发刷新时间，2000ms后刷新完成，隐藏刷新状态；
 
-## 更多介绍
+## 方法介绍
 
 - setDragRate(float dragRate)  设置拖拽的阻尼比例，默认是0.5，一般设置在0-1之间比较合适;
+
 - setRatioOfHeaderHeightToRefresh(float ratio)  设置允许刷新的高度和HeaderView高度的比例，默认为1.0;
+
 - setRatioOfHeaderHeightToReach(float ratio) 设置能下拉的最大高度和HeaderView高度的比例，默认为1.6;
+
 - setToStartDuration(int toStartDuration) 设置回到初始状态动画执行时间，单位为ms，默认是200ms;
+
 - setToRetainDuration(int toRetainDuration) 设置手指离开屏幕后触发刷新时到刷新保持的位置需要的动画时长，单位为ms,默认为200ms;
+
 - setAutoRefreshDuration(int autoRefreshDuration) 自动刷新需要的动画时长 ，默认为800ms；
+
 - setCompleteStickDuration(int completeStickDuration) 刷新完成后状态保持的时长，默认为200ms;
+
 - setHeaderView(View view) 设置一个自定义的HeaderView;
+
 - setUpdateHandler(UpdateHandler updateHandler) 设置状态和进度更新处理，一般是Header实现；
+
 - addOnRefreshListener(OnRefreshListener onRefreshListener) 添加一个刷新回调监听，支持add方式；
+
 - refreshComplete() 调用次方法，可以接受刷新；
+
 
 ## 自定义HeaderView
 自定义Header只需要集成一个ViewGroup/View，实现VRefreshLayout.UpdateHandler接口即可；
