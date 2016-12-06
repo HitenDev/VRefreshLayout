@@ -125,6 +125,7 @@ public final static int STATUS_COMPLETE = 5;//刷新完成
 - STATUS_COMPLETE 调用refreshComplete()方法开始，到headerView即将完全隐藏之后，这一点时间内
 这些状态正好形成一个状态循环；
 
-## 正在解决的bug
-- 多点触摸第二个手指放下时坐标问题
-- 图片作为content时，会跳动
+
+## 参考
+- [android-Ultra-Pull-To-Refresh](https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh) -liaohuqiu
+- [SwipeRefreshLayout](https://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html) -googel
