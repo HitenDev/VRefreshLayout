@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<item  android:title="auto" android:id="@+id/menu_auto"/>
+    <item
+        android:id="@+id/menu_auto"
+        android:title="auto"/>
+    <item
+        android:id="@+id/menu_setting"
+        android:title="setting"/>
 </menu>

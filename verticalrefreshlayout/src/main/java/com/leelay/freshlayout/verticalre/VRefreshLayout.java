@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Color;
 import android.support.annotation.LayoutRes;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
@@ -28,15 +27,13 @@ import java.util.List;
 
 public class VRefreshLayout extends ViewGroup {
 
-    private static final String TAG = "VRefreshLayout";
-
     public final static int STATUS_INIT = 0;//原始状态
     public final static int STATUS_DRAGGING = 1;//正在下拉
     public final static int STATUS_RELEASE_PREPARE = 2;//松手将要刷新
     public final static int STATUS_REFRESHING = 3;//正在刷新
     public final static int STATUS_RELEASE_CANCEL = 4;//松手取消
     public final static int STATUS_COMPLETE = 5;//刷新完成
-
+    private static final String TAG = "VRefreshLayout";
     private int mStatus;
 
     private View mHeaderView;
@@ -46,9 +43,7 @@ public class VRefreshLayout extends ViewGroup {
     private int mHeaderOrginTop;
 
     private int mMaxDragDistance = -1;
-
-    private float DRAG_RATE = .5f;
-
+    private float mDragRate = .5f;
     private int mHeaderCurrentTop;
     private int mHeaderLayoutIndex = -1;
     private boolean mIsInitMesure = true;
@@ -56,7 +51,6 @@ public class VRefreshLayout extends ViewGroup {
     private float mInitDownY;
     private float mInitMotionY;
     private boolean mIsRefreshing;
-
     private int mActivePointerId = -1;
     private float mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private Progress mProgress = new Progress();
@@ -67,6 +61,8 @@ public class VRefreshLayout extends ViewGroup {
     private int mCompleteStickDuration = 400;
     private float ratioOfHeaderHeightToRefresh = 1.0f;
     private float ratioOfHeaderHeightToReach = 1.6f;
+    private List<OnRefreshListener> mOnRefreshListeners;
+    private UpdateHandler mUpdateHandler;
 
     public VRefreshLayout(Context context) {
         this(context, null);
@@ -78,16 +74,28 @@ public class VRefreshLayout extends ViewGroup {
         setChildrenDrawingOrderEnabled(true);
     }
 
+    public void setDragRate(float dragRate) {
+        mDragRate = dragRate;
+    }
+
     public void setRatioOfHeaderHeightToRefresh(float ratio) {
         ratio = Math.max(ratio, 1.0f);
         this.ratioOfHeaderHeightToRefresh = ratio;
         this.ratioOfHeaderHeightToReach = Math.max(ratioOfHeaderHeightToRefresh, ratioOfHeaderHeightToReach);
+        if (mHeaderView.getMeasuredHeight() > 0) {
+            setRefreshDistance((int) (mHeaderView.getMeasuredHeight() * ratioOfHeaderHeightToRefresh));
+            setMaxDragDistance((int) (mHeaderView.getMeasuredHeight() * ratioOfHeaderHeightToReach));
+        }
     }
 
     public void setRatioOfHeaderHeightToReach(float ratio) {
         ratio = Math.max(Math.max(ratio, 1.0f), ratioOfHeaderHeightToRefresh);
         this.ratioOfHeaderHeightToReach = ratio;
+        if (mHeaderView.getMeasuredHeight() > 0) {
+            setMaxDragDistance((int) (mHeaderView.getMeasuredHeight() * ratioOfHeaderHeightToReach));
+        }
     }
+
     public void setToStartDuration(int toStartDuration) {
         mToStartDuration = toStartDuration;
     }
@@ -103,7 +111,6 @@ public class VRefreshLayout extends ViewGroup {
     public void setCompleteStickDuration(int completeStickDuration) {
         mCompleteStickDuration = completeStickDuration;
     }
-
 
     private void setMaxDragDistance(int distance) {
         mMaxDragDistance = distance;
@@ -121,7 +128,6 @@ public class VRefreshLayout extends ViewGroup {
         defultHeaderView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, dp2px(64)));
         setHeaderView(defultHeaderView);
     }
-
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -195,7 +201,6 @@ public class VRefreshLayout extends ViewGroup {
         Log.e(TAG, "onLayout: ");
     }
 
-
     @Override
     protected int getChildDrawingOrder(int childCount, int i) {
         if (mHeaderLayoutIndex < 0) {
@@ -208,7 +213,6 @@ public class VRefreshLayout extends ViewGroup {
             return i;
         }
     }
-
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -304,7 +308,7 @@ public class VRefreshLayout extends ViewGroup {
                 float evY = ev.getY(pointerIndex);
                 checkDragging(evY);
                 if (mIsBeingDragged) {
-                    float dy = (evY - mInitMotionY) * DRAG_RATE;
+                    float dy = (evY - mInitMotionY) * mDragRate;
                     if (dy > 0) {
                         actionMoving(dy);
                     }
@@ -334,7 +338,7 @@ public class VRefreshLayout extends ViewGroup {
                 }
                 float upY = ev.getY(pointerIndex);
                 if (mIsBeingDragged) {
-                    float upDy = (upY - mInitMotionY) * DRAG_RATE;
+                    float upDy = (upY - mInitMotionY) * mDragRate;
                     actionUp(upDy);
                     mIsBeingDragged = false;
                 }
@@ -348,7 +352,6 @@ public class VRefreshLayout extends ViewGroup {
         return true;
 
     }
-
 
     private void actionUp(float dy) {
         Log.e(TAG, "actionUp: " + dy);
@@ -434,7 +437,6 @@ public class VRefreshLayout extends ViewGroup {
         }
     }
 
-
     public void setHeaderView(View view) {
         if (view == null || view == mHeaderView) {
             return;
@@ -457,7 +459,6 @@ public class VRefreshLayout extends ViewGroup {
         View view = LayoutInflater.from(getContext()).inflate(redId, this, false);
         setHeaderView(view);
     }
-
 
     private int dp2px(int dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
@@ -519,12 +520,6 @@ public class VRefreshLayout extends ViewGroup {
         }
     }
 
-    public interface OnRefreshListener {
-        void onRefresh();
-    }
-
-    private List<OnRefreshListener> mOnRefreshListeners;
-
     public void addOnRefreshListener(OnRefreshListener onRefreshListener) {
         if (mOnRefreshListeners == null) {
             mOnRefreshListeners = new ArrayList<>();
@@ -541,10 +536,12 @@ public class VRefreshLayout extends ViewGroup {
         }
     }
 
-    private UpdateHandler mUpdateHandler;
-
     public void setUpdateHandler(UpdateHandler updateHandler) {
         mUpdateHandler = updateHandler;
+    }
+
+    public interface OnRefreshListener {
+        void onRefresh();
     }
 
 

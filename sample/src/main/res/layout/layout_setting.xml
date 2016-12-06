@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingLeft="16dp"
+              android:paddingTop="16dp">
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout03"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <com.leelay.refresh.vertical.SeekBarLayout
+        android:id="@+id/seekbar_layout06"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+</LinearLayout>

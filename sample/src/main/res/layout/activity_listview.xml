@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     >
+
+    <include layout="@layout/toolbar"/>
 
     <com.leelay.freshlayout.verticalre.VRefreshLayout
         android:id="@+id/refresh_layout"
@@ -20,4 +22,4 @@
             />
 
     </com.leelay.freshlayout.verticalre.VRefreshLayout>
-</RelativeLayout>
+</LinearLayout>

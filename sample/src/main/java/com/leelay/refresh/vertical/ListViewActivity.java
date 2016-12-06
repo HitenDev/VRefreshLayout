@@ -12,11 +12,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends BaseActivity {
+public class ListViewActivity extends BaseActivity {
 
     private List<ImageView> mViews;
     private List<String> mList;
@@ -25,7 +27,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_listview);
         initData();
         initView();
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -41,8 +43,10 @@ public class MainActivity extends BaseActivity {
                     }
 
                     if (target != null) {
-                        Intent intent = new Intent(MainActivity.this, target);
+                        Intent intent = new Intent(ListViewActivity.this, target);
                         startActivity(intent);
+                    } else {
+                        Toast.makeText(ListViewActivity.this, ((TextView) view).getText(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -91,12 +95,10 @@ public class MainActivity extends BaseActivity {
 
     private void initData() {
         mList = new ArrayList<>();
-        mList.add("ScrollView");
-        mList.add("TextView");
-        mList.add("ImageView");
-        for (int i = 0; i < 20; i++) {
-            mList.add(String.valueOf(i));
-        }
+        String[] array1 = getResources().getStringArray(R.array.activity_array);
+        mList.addAll(Arrays.asList(array1));
+        String[] array = getResources().getStringArray(R.array.language_array);
+        mList.addAll(Arrays.asList(array));
     }
 
 }

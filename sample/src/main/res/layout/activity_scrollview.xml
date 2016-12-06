@@ -1,41 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<com.leelay.freshlayout.verticalre.VRefreshLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@id/refresh_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <ScrollView
+    <include layout="@layout/toolbar"/>
+
+    <com.leelay.freshlayout.verticalre.VRefreshLayout
+
+        android:id="@id/refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white">
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/dkgray"
-            android:orientation="vertical">
+            android:background="@android:color/white">
 
-            <TextView
-                style="@style/itemText"
-                android:background="@color/colorAccent"
-                android:text="current page is a ScrollView"
-                />
+            <LinearLayout
+                android:id="@+id/layout_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/dkgray"
+                android:orientation="vertical">
 
-            <TextView
-                style="@style/itemText"
-                android:onClick="itemClick"
-                android:text="ListView"
-                />
+                <TextView
+                    style="@style/itemText"
+                    android:background="@color/colorAccent"
+                    android:text="current page is a ScrollView"
+                    />
 
-            <TextView
-                style="@style/itemText"
-                android:onClick="itemClick"
-                android:text="TextView"
-                />
-
-        </LinearLayout>
-    </ScrollView>
-</com.leelay.freshlayout.verticalre.VRefreshLayout>
+            </LinearLayout>
+        </ScrollView>
+    </com.leelay.freshlayout.verticalre.VRefreshLayout>
+</LinearLayout>
 

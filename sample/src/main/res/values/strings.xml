@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">VRefreshLayout</string>
+    <array name="language_array">
+        <item>Java</item>
+        <item>C</item>
+        <item>C++</item>
+        <item>C#</item>
+        <item>Python</item>
+        <item>JavaScript</item>
+        <item>PHP</item>
+        <item>Perl</item>
+        <item>Objective-C</item>
+        <item>Swift</item>
+        <item>Ruby</item>
+        <item>Visual Basic</item>
+        <item>Delphi</item>
+        <item>Go</item>
+        <item>Groovy</item>
+        <item>R</item>
+        <item>Matlab</item>
+        <item>PL/SQL</item>
+    </array>
+
+    <array name="activity_array">
+        <item>ScrollView</item>
+        <item>TextView</item>
+        <item>ImageView</item>
+        <item>RecyclerView</item>
+    </array>
 </resources>

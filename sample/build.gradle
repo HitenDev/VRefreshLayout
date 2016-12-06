@@ -25,6 +25,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile "com.android.support:appcompat-v7:$SUPPORT_VERSION"
+    compile "com.android.support:recyclerview-v7:$SUPPORT_VERSION"
+
     testCompile "junit:junit:$JUNIT_VERSION"
     compile project(":verticalrefreshlayout")
     compile 'in.srain.cube:ultra-ptr:1.0.11'
