@@ -29,5 +29,4 @@ dependencies {
 
     testCompile "junit:junit:$JUNIT_VERSION"
     compile project(":verticalrefreshlayout")
-    compile 'in.srain.cube:ultra-ptr:1.0.11'
 }
