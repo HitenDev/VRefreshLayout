@@ -2,7 +2,7 @@
 一个竖直方向的下拉刷新控件，支持自定义Header，可配置参数，最重要的特点是**刷新时头部置顶显示，且不影响列表滑动**；
 
 ## 为什么要做头部置顶显示
-现在越来越多的App下拉刷新时是置顶显示的，比如手机京东和天猫商城，我们在下拉刷新时，头部的刷新视图是保持显示的，这样在滚动列表的时候，用户可以知道当前正在刷新状态，而传统的下拉刷新库，比如[Android-PullToRefresh](https://github.com/chrisbanes/Android-PullToRefresh)和[android-Ultra-Pull-To-Refresh](https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh)，是不支持的头部置顶显示的，用户往下翻看时，刷新状态就可能被隐藏；google的SwpieRefreshLayout是置顶层显示的，但是它的内容区域的不会跟着动的，且可定制性太差。
+现在越来越多的App下拉刷新时是置顶显示的，大家可以看`手机京东`,`天猫商城`,`小米商城`,`汽车之家`等APP，我们在下拉刷新时，头部的刷新视图是保持显示的，这样在滚动列表的时候，用户可以知道当前正在刷新状态，而传统的下拉刷新库，比如[Android-PullToRefresh](https://github.com/chrisbanes/Android-PullToRefresh)和[android-Ultra-Pull-To-Refresh](https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh)，是不支持的头部置顶显示的，用户往下翻看时，刷新状态就可能被隐藏；google的SwpieRefreshLayout是置顶层显示的，但是它的内容区域的不会跟着动的，且可定制性太差。
 
 
 ## 功能预览
