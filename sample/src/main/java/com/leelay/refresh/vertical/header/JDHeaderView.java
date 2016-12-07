@@ -45,7 +45,11 @@ public class JDHeaderView extends RelativeLayout implements VRefreshLayout.Updat
                 mPackageIv.setScaleY(0.1f);
                 mPeopleIv.setImageResource(R.drawable.jd_people01);
                 mStatusTv.setText(R.string.pull_to_refresh);
-                mAnimationDrawable = null;
+                if (mAnimationDrawable != null) {
+                    mAnimationDrawable.stop();
+                    mAnimationDrawable = null;
+                }
+
                 break;
             case VRefreshLayout.STATUS_DRAGGING:
                 float currentY = progress.getCurrentY();
