@@ -63,6 +63,7 @@ public class VRefreshLayout extends ViewGroup {
     private float ratioOfHeaderHeightToReach = 1.6f;
     private List<OnRefreshListener> mOnRefreshListeners;
     private UpdateHandler mUpdateHandler;
+    private DefaultHeaderView mDefaultHeaderView;
 
     public VRefreshLayout(Context context) {
         this(context, null);
@@ -70,12 +71,17 @@ public class VRefreshLayout extends ViewGroup {
 
     public VRefreshLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setDefultHeaderView();
+        setDefaultHeaderView();
         setChildrenDrawingOrderEnabled(true);
     }
 
     public void setDragRate(float dragRate) {
         mDragRate = dragRate;
+    }
+
+
+    public int getStatus() {
+        return mStatus;
     }
 
     public void setRatioOfHeaderHeightToRefresh(float ratio) {
@@ -122,11 +128,22 @@ public class VRefreshLayout extends ViewGroup {
         mProgress.refreshY = mRefreshDistance;
     }
 
-    private void setDefultHeaderView() {
-        DefultHeaderView defultHeaderView = new DefultHeaderView(getContext());
-        defultHeaderView.setPadding(0, dp2px(10), 0, dp2px(10));
-        defultHeaderView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, dp2px(64)));
-        setHeaderView(defultHeaderView);
+    public boolean isDefaultHeaderView() {
+        return mHeaderView == mDefaultHeaderView;
+    }
+
+    public View getDefaultHeaderView() {
+        if (mDefaultHeaderView == null) {
+            setDefaultHeaderView();
+        }
+        return mDefaultHeaderView;
+    }
+
+    private void setDefaultHeaderView() {
+        mDefaultHeaderView = new DefaultHeaderView(getContext());
+        mDefaultHeaderView.setPadding(0, dp2px(10), 0, dp2px(10));
+        mDefaultHeaderView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, dp2px(64)));
+        setHeaderView(mDefaultHeaderView);
     }
 
     @Override
@@ -189,14 +206,14 @@ public class VRefreshLayout extends ViewGroup {
 
         //layout contentView
         if (mContentView != null) {
-            int distance = mHeaderView.getTop() - mHeaderOrginTop;
+            int distance = mHeaderCurrentTop - mHeaderOrginTop;
             int contentHeight = mContentView.getMeasuredHeight();
             int contentWidth = mContentView.getMeasuredWidth();
             int left = paddingLeft;
-            int top = paddingTop;
+            int top = paddingTop + distance;
             int right = left + contentWidth;
-            int bottom = paddingTop + contentHeight;
-            mContentView.layout(left, top + distance, right, bottom);
+            int bottom = top + contentHeight;
+            mContentView.layout(left, top, right, bottom);
         }
         Log.e(TAG, "onLayout: ");
     }

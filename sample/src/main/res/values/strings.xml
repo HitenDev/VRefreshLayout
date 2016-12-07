@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">VRefreshLayout</string>
+    <string name="menu_header_jd">京东Style</string>
+    <string name="menu_header_default">默认Style</string>
     <array name="language_array">
         <item>Java</item>
         <item>C</item>

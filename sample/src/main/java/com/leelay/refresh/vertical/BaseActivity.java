@@ -10,9 +10,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.leelay.freshlayout.verticalre.VRefreshLayout;
 import com.leelay.refresh.vertical.config.Config;
+import com.leelay.refresh.vertical.header.JDHeaderView;
+import com.leelay.refresh.vertical.utils.Densityutils;
 
 /**
  * Created by Lilei on 2016.
@@ -24,12 +27,16 @@ public class BaseActivity extends AppCompatActivity {
     protected VRefreshLayout mRefreshLayout;
     private Toolbar mToolBar;
 
+    private View mJDHeaderView;
+
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         setToolBar();
         mRefreshLayout = (VRefreshLayout) findViewById(R.id.refresh_layout);
         if (mRefreshLayout != null) {
+            mJDHeaderView = new JDHeaderView(this);
+            mJDHeaderView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp2px(64)));
             mRefreshLayout.setBackgroundColor(Color.DKGRAY);
             mRefreshLayout.setAutoRefreshDuration(400);
             mRefreshLayout.setRatioOfHeaderHeightToReach(1.5f);
@@ -82,6 +89,24 @@ public class BaseActivity extends AppCompatActivity {
                         refreshConfig();
                     }
                 });
+                break;
+            case R.id.menu_style:
+                if (mRefreshLayout != null) {
+                    if (mRefreshLayout.getStatus() != VRefreshLayout.STATUS_INIT) {
+                        return false;
+                    }
+                    if (mRefreshLayout.isDefaultHeaderView()) {
+                        mRefreshLayout.setHeaderView(mJDHeaderView);
+                        mRefreshLayout.setBackgroundColor(Color.WHITE);
+                        item.setTitle(R.string.menu_header_default);
+                    } else {
+                        mRefreshLayout.setHeaderView(mRefreshLayout.getDefaultHeaderView());
+                        mRefreshLayout.setBackgroundColor(Color.DKGRAY);
+                        item.setTitle(R.string.menu_header_jd);
+                    }
+                }
+
+                break;
         }
         return false;
     }
@@ -105,6 +130,6 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     protected int dp2px(float dp) {
-        return (int) (getResources().getDisplayMetrics().density * dp);
+        return Densityutils.dp2px(this, dp);
     }
 }

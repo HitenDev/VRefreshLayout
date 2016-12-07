@@ -15,18 +15,18 @@ import android.widget.TextView;
  * Created by Lilei on 2016.
  */
 
-public class DefultHeaderView extends RelativeLayout implements VRefreshLayout.UpdateHandler {
+public class DefaultHeaderView extends RelativeLayout implements VRefreshLayout.UpdateHandler {
 
     private final ImageView mImageView;
     private final View mProgress;
     private TextView mTextView;
     private static final String TAG = "DefultHeaderView";
 
-    public DefultHeaderView(Context context) {
+    public DefaultHeaderView(Context context) {
         this(context, null);
     }
 
-    public DefultHeaderView(Context context, AttributeSet attrs) {
+    public DefaultHeaderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         LayoutInflater.from(context).inflate(R.layout.defult_header_layout, this, true);
         mTextView = (TextView) findViewById(R.id.text);
