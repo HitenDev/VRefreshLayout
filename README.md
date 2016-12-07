@@ -11,6 +11,10 @@
 
 ![](https://github.com/ileelay/VRefreshLayout/blob/master/pics/gif1.gif)
 
+自定义头部样式,例如模仿一个京东的下拉刷新动画
+
+![](https://github.com/ileelay/VRefreshLayout/blob/master/pics/jd.gif)
+
 良好的兼容性，支持ListView/RecyclerView/ScrollView/TextViw/Image等绝大多数view
 
 ![](https://github.com/ileelay/VRefreshLayout/blob/master/pics/gif2.gif)
@@ -139,4 +143,4 @@ public final static int STATUS_COMPLETE = 5;//刷新完成
 
 ## 参考
 - [android-Ultra-Pull-To-Refresh](https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh) -liaohuqiu
-- [SwipeRefreshLayout](https://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html) -googel
+- [SwipeRefreshLayout](https://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html) -google
