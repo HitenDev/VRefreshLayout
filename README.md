@@ -7,7 +7,7 @@
 
 ## 功能预览
 
-头部刷新时列表可以正常响应sh事件，且头部不会隐藏
+头部刷新时列表可以正常响应事件，且头部不会隐藏
 
 ![](https://github.com/ileelay/VRefreshLayout/blob/master/pics/gif1.gif)
 
